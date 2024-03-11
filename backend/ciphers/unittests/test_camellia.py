@@ -3,13 +3,23 @@
 """
 
 import unittest
-import camellia
+
+from utilities import bitsize, DECRYPT
+from ciphers.camellia import camellia
 
 
-class TestCamellia(unittest.TestCase):
-    def test_camellia_encrypt(self):
-        key = 0x0123456789abcdeffedcba9876543210
+class TestEncryptionAlgorithms(unittest.TestCase):
+    def test_camellia(self):
+        """
+        Проверка алгоритма Camellia.
+        """
+        
+        key = 0x123456789abcdeffedcba9876543210
         message = 0x0123456789abcdeffedcba9876543210
-        expectation = 0x67673138549669730857065648eabe43
+        expectation = 0x4adacd6b0005ec28c0de5fee44cde945
 
-        self.assertEqual(camellia.camellia_encrypt(message, key), expectation)
+        c = camellia(message, key)
+        m = camellia(c, key, DECRYPT)
+
+        self.assertEqual(m, message)
+        self.assertEqual(c, expectation)

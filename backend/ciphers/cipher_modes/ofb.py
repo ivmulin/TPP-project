@@ -2,19 +2,27 @@
 Режим шифрования OFB.
 """
 
-from common_traits import *
-from camellia import camellia_encrypt
+from utilities import *
 
 
-def ofb(encrypt: callable, message: int, key: int,\
+def ofb(encr_method: callable, message: int, key: int,
         iv: int) -> int:
     """
-    OFB.
+    Шифрование в режиме OFB.
 
     Из-за симметричности операции ^ шифрование и расшифровывание
     происходят одинаково.
+
+    Аргументы:
+    encr_method -   алгоритм шифрования
+    message     -   шифруемое сообщение
+    key         -   ключ шифрования
+    iv          -   вектор инициализации
+
+    Возвращает:
+    cipher      -   шифротекст
     """
-    
+
     # =====  Подготовка  =====
 
     bits = sizeof(iv) * BYTE # размер блоков
@@ -29,11 +37,11 @@ def ofb(encrypt: callable, message: int, key: int,\
 
     # =====  Шифрование  =====
 
-    mask = create_mask(bits) << (remainder + bits * (n-1))
+    mask = unit_mask(bits) << (remainder + bits * (n-1))
     cipher = 0
 
     for i in range(n):
-        k = encrypt(k, key)
+        k = encr_method(k, key)
         block = message & mask
         cipher <<= bits
 
@@ -45,6 +53,3 @@ def ofb(encrypt: callable, message: int, key: int,\
             mask >>= remainder
     
     return cipher
-
-if __name__ == "__main__":
-    pass

@@ -1,6 +1,7 @@
 """
 Вашъ карманный шифраторъ, живущiй въ терминалѣ.
 """
+from utilities import ENCRYPT, DECRYPT
 
 from ciphers import camellia
 
@@ -9,6 +10,9 @@ from cipher_modes.ofb import ofb
 
 import gettext
 
+
+IS_STRING = "*"
+EXAMPLE = IS_STRING + "../README.md"
 
 encr_modes = [
     "e", "encrypt",
@@ -32,6 +36,7 @@ HELP_RU = {
     ("encr_mode", ): 
     {
         "default": "encrypt",
+        "choices": encr_modes,
         "help": """
 Опредѣляетъ, будетъ ли сообщенiе зашифровано али наоборотъ.
 Мой выборъ палъ на %(default)s, но ваше превосходительство 
@@ -39,7 +44,7 @@ HELP_RU = {
 """ + ", ".join(encr_modes) + "."
     },
 
-    ("-a", "--algorithm"):
+    ("-v", "--via"):
     {
         "type": str,
         "default": algorithms[0],
@@ -54,8 +59,18 @@ HELP_RU = {
     
     ("message", ):
     {
-        "help": "Пассажъ либо опусъ, интересующiй вашу милость."
+        "help": """
+Пассажъ либо опусъ, интересующiй вашу милость. Коли вашей 
+свѣтлости угодно, дабы я въ любомъ случаѣ воспринялъ посланiе 
+какъ строку, передъ нею стоитъ поставить """ + IS_STRING + \
+" такимъ манером: " + EXAMPLE + "."
     },
+
+    ("-o", "--output"):
+    {
+        "type": str,
+        "help": ""
+
 }
 
 
@@ -67,6 +82,7 @@ def translate(phrase: str) -> str:
 gettext.gettext = translate
 
 import argparse
+from os import path
 
 
 DESCRIPTION = "Вашъ карманный шифраторъ, живущiй въ терминалѣ."
@@ -81,3 +97,21 @@ if __name__ == "__main__":
         parser.add_argument(*i, **(HELP_RU[i]))
 
     args = parser.parse_args() # запуск парсера
+
+    is_file = "valid file" if path.isfile(args.message) else "just string"
+    print("Mode:", args.encr_mode)
+    print("Algo:", args.via)
+    print("Message:", args.message, "->", is_file)
+
+    mode = args.encr_mode
+    via = args.via
+    message = args.message
+
+    if path.isfile(message):
+        with open(message) as file:
+            message = file.read()
+
+    if mode in ("e", "encrypt"):
+        if via == "camellia":
+            cipher 
+

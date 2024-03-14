@@ -2,7 +2,10 @@
 Всякие полезные вспомогательности.
 """
 
+# Константы
+
 BYTE = 8
+UTF = 16
 
 # Маски
 MASK8 = 0xff
@@ -11,14 +14,15 @@ MASK64 = 0xffffffffffffffff
 MASK128 = 0xffffffffffffffffffffffffffffffff
 
 # Флаги шифрования
-ENCRYPT = 0
-DECRYPT = ~ENCRYPT
+ENCRYPT = False
+DECRYPT = not ENCRYPT
 
 
 def log(x: int, n: int) -> int:
     """
     floor( log(x, n) )
     """
+
     if x < 0:
         raise ValueError(f"x > 0 !!! Passed {x}, however.")
     l = 0
@@ -33,6 +37,7 @@ def sizeof(x: int | str) -> int:
     """
     Аналог sizeof в C.
     """
+
     if type(x) == int:
         return log(x, 256) + 1
 
@@ -111,7 +116,36 @@ def pad(x: any, n: int) -> int:
     """
     Делает x (|x| < n) длиною в n бит.
     """
+
     if bitsize(x) >= n:
         raise ValueError(f"bitsize({x}) is bigger than {n}.")
 
     return x << (n - bitsize(x))
+
+
+# ===== Строковые преобразования =====
+
+
+def str_to_int(s: str) -> int:
+    """
+    Преобразует строку в число.
+    """
+    
+    i = 0
+    for l in s[::-1]:
+        i <<= UTF
+        i |= ord(l)
+    return i
+
+
+def int_to_str(i: int) -> str:
+    """
+    Преобразует число в строку.
+    """
+
+    s = ""
+    mask = unit_mask(UTF)
+    while i:
+        s += chr(i & mask)
+        i >>= UTF
+    return s

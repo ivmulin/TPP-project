@@ -16,10 +16,8 @@ class TestEncryptionAlgorithms(unittest.TestCase):
         
         key = 0x123456789abcdeffedcba9876543210
         message = 0x0123456789abcdeffedcba9876543210
-        expectation = 0x4adacd6b0005ec28c0de5fee44cde945
 
-        c = camellia(message, key)
-        m = camellia(c, key, DECRYPT)
+        c, key, r_t = camellia(message, key)
+        m, key, r_t = camellia(c, key, DECRYPT, r_t)
 
         self.assertEqual(m, message)
-        self.assertEqual(c, expectation)

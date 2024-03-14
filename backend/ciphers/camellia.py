@@ -100,36 +100,49 @@ def fl_inv_function(fl_inv_in: int, ke: int) -> int:
     return fl_inv_out
 
 
-def camellia(message: int, k: int, encr_mode: int = ENCRYPT) -> int:
+def camellia(message: int, key: int, encr_mode: int = ENCRYPT, \
+        res_type: object = int) -> list[int, int, object]:
     """
     Шифрует сообщение по алгоритму Camellia.
 
     Аргументы:
     message     -   сообщение, записанное в 128, 192 или 256 бит
-    k           -   ключ шифрования
+    key         -   ключ шифрования
     encr_mode   -   (необязательный аргумент) определяет, будет
                     ли функция шифровать или расшифровывать
+    res_type    -   (необязательный аргумент) тип message. Требуется
+                    для корректной расшифровки (encr_mode = DECRYPT).
 
     Возвращает:
     cipher      -   шифротекст
+    key         -   ключ шифрования
+    res_type    -   тип message, необходимый для корректной расшифровки
+                    (encr_mode = DECRYPT)
     """
 
     # =====  Подготовка  =====
 
+    if type(message) == str:
+        message = str_to_int(message)
+        res_type = str
+
+    if type(key) == str:
+        key = str_to_int(key)
+
     kl, kr = 0, 0
-    bits_in_k = bitsize(k) # sizeof(k) * BYTE
+    bits_in_key = bitsize(key) # sizeof(key) * BYTE
 
     # 1. Вычисляем 128-битные значения kl и kr
-    if bits_in_k <= 128:
-        kl = k
+    if bits_in_key <= 128:
+        kl = key
 
-    elif bits_in_k <= 192:
-        kl = k >> 64
-        kr = ((k & MASK64) << 64) | (~(k & MASK64))
+    elif bits_in_key <= 192:
+        kl = key >> 64
+        kr = ((key & MASK64) << 64) | (~(key & MASK64))
 
-    elif bits_in_k <= 256:
-        kl = k >> 128
-        kr = k & MASK128
+    elif bits_in_key <= 256:
+        kl = key >> 128
+        kr = key & MASK128
 
     else:
         raise ValueError(
@@ -153,7 +166,7 @@ def camellia(message: int, k: int, encr_mode: int = ENCRYPT) -> int:
 
     # 3. Вычисляем 64-битные ключи
     # kw1, ..., kw4, k1, ..., k18, ke1, ..., ke4
-    if bits_in_k <= 128:
+    if bits_in_key <= 128:
         kw1 = left_rotation(kl, 0) >> 64
         kw2 = left_rotation(kl, 0) & MASK64
         k1 = left_rotation(ka, 0) >> 64
@@ -220,7 +233,7 @@ def camellia(message: int, k: int, encr_mode: int = ENCRYPT) -> int:
 
     # В случае расшифровки достаточно поменять местами ключи
     if encr_mode == DECRYPT:
-        if bits_in_k <= 128:
+        if bits_in_key <= 128:
             kw1, kw3 = kw3, kw1
             kw2, kw4 = kw4, kw2
             k1, k18 = k18, k1
@@ -260,7 +273,7 @@ def camellia(message: int, k: int, encr_mode: int = ENCRYPT) -> int:
     d1 = message >> 64
     d2 = message & MASK64
 
-    if bits_in_k <= 128:
+    if bits_in_key <= 128:
         d1 = d1 ^ kw1                   # Предварительное забеливание
         d2 = d2 ^ kw2
         d2 = d2 ^ f_function(d1, k1)    # Round 1
@@ -326,4 +339,7 @@ def camellia(message: int, k: int, encr_mode: int = ENCRYPT) -> int:
 
     cipher = (d2 << 64) | d1
 
-    return cipher
+    if encr_mode == DECRYPT and res_type == str:
+        cipher = int_to_str(cipher)
+
+    return cipher, key, res_type
